@@ -1,0 +1,54 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select available Xcode
+        run: |
+          xcodebuild -version
+          xcode-select -p
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build for iOS
+        run: |
+          xcodebuild -project iOSReverseLab.xcodeproj \
+            -scheme iOSReverseLab \
+            -sdk iphoneos \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Run unit tests
+        run: |
+          xcodebuild -project iOSReverseLab.xcodeproj \
+            -scheme iOSReverseLab \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGNING_ALLOWED=NO test
+      - name: Package unsigned app for inspection
+        if: success()
+        run: |
+          APP="$(find ~/Library/Developer/Xcode/DerivedData -path '*/Build/Products/Release-iphoneos/iOSReverseLab.app' -print -quit)"
+          test -n "$APP"
+          mkdir -p artifacts/Payload
+          cp -R "$APP" artifacts/Payload/
+          cd artifacts && zip -r ../iOSReverseLab-unsigned-package.zip Payload
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: iOSReverseLab-unsigned-package
+          path: iOSReverseLab-unsigned-package.zip
+          if-no-files-found: error
