@@ -81,7 +81,10 @@ struct ContentView: View {
             row("Executável principal", report.executableName ?? "Não identificado")
             row("Bundle ID", report.bundleIdentifier ?? "Não encontrado")
             row("Versão", report.version ?? "Não encontrada")
-            row("Resultado", "Validação preliminar concluída")
+            row("Build", report.buildNumber ?? "Não encontrado")
+            row("Arquiteturas", report.architectures.isEmpty ? "Não identificadas" : report.architectures.joined(separator: ", "))
+            row("iOS mínimo", report.minimumOSVersion ?? "Não informado")
+            row("Resultado", "Inspeção estática concluída")
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
