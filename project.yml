@@ -33,3 +33,5 @@ targets:
       - path: iOSReverseLabTests
     dependencies:
       - target: iOSReverseLab
+      - package: ZIPFoundation
+        product: ZIPFoundation
